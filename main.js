@@ -1,10 +1,15 @@
 const canvas = document.querySelector("canvas");
-const ctx = canvas.getContext("webgl2");
-let width = 300;
-let height = 150;
+const wgl = canvas.getContext("webgl2");
 
-const observer = new ResizeObserver((entries) => {
-  width = canvas.clientWidth;
-  height = canvas.clientHeight;
-});
-observer.observe(canvas)
+function resizeCanvas() {
+  let width = window.innerWidth;
+  let height = window.innerHeight;
+
+  canvas.width = width;
+  canvas.height = height;
+
+  wgl.viewport(0, 0, width, height);
+}
+
+resizeCanvas();
+window.addEventListener("resize" , resizeCanvas);
