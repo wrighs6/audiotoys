@@ -14,12 +14,33 @@ function resizeCanvas() {
 resizeCanvas();
 window.addEventListener("resize" , resizeCanvas);
 
-function render(time) {
-  const r = time % 499.0 / 499.0;
-  const g = time % 569.0 / 569.0;
-  const b = time % 691.0 / 691.0;
+const stream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
+const audioCtx = new AudioContext();
+const source = audioCtx.createMediaStreamSource(stream);
+const analyser = audioCtx.createAnalyser();
+source.connect(analyser);
 
-  gl.clearColor(r, g, b, 1.0);
+analyser.fftSize = 32;
+const bufferLength = analyser.frequencyBinCount;
+const dataArray = new Uint8Array(bufferLength);
+
+let maxsum = 100.0;
+
+function render(time) {
+  analyser.getByteFrequencyData(dataArray);
+
+  let sum = 0;
+  for (const amplitude of dataArray) {
+    sum += amplitude * amplitude;
+  }
+
+  if (sum > maxsum) {
+    maxsum = sum;
+  }
+
+  const c = sum / maxsum;
+
+  gl.clearColor(c, c, c, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT);
 
   requestAnimationFrame(render);
