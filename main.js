@@ -20,27 +20,18 @@ const source = audioCtx.createMediaStreamSource(stream);
 const analyser = audioCtx.createAnalyser();
 source.connect(analyser);
 
-analyser.fftSize = 32;
+analyser.fftSize = 2048;
 const bufferLength = analyser.frequencyBinCount;
 const dataArray = new Uint8Array(bufferLength);
-
-let maxsum = 100.0;
 
 function render(time) {
   analyser.getByteFrequencyData(dataArray);
 
-  let sum = 0;
-  for (const amplitude of dataArray) {
-    sum += amplitude * amplitude;
-  }
+  const normalizedLoudness = Math.sqrt(dataArray.reduce((a, b) => a + (b * b), 0) / bufferLength) / 255;
 
-  if (sum > maxsum) {
-    maxsum = sum;
-  }
+  console.log(normalizedLoudness);
 
-  const c = sum / maxsum;
-
-  gl.clearColor(c, c, c, 1.0);
+  gl.clearColor(normalizedLoudness, normalizedLoudness, normalizedLoudness, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT);
 
   requestAnimationFrame(render);
